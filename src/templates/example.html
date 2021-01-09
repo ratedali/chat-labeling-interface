@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600|Roboto Mono'
+    rel='stylesheet' type='text/css' />
+  <link href='//fonts.googleapis.com/css?family=Dosis:500&text=LabelStudio' rel='stylesheet'
+    type='text/css' />
+  <link href="{{ url_for('static', filename='label-studio.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="theme-color" content="#000000">
+  <title>Label Studio</title>
+</head> 
+<body>
+  <noscript>
+    You need to enable JavaScript to run this app.
+  </noscript>
+
+  <div id="ls-container">
+    <div id="label-studio"></div>
+  </div>
+
+  <script>
+    (function (d, o) {
+      d.domReady = function (n, a) {
+        o.addEventListener && o.addEventListener("DOMContentLoaded", function e(t) {
+          o.removeEventListener("DOMContentLoaded", e), n.call(a || d, t)
+        }) || o.attachEvent && o.attachEvent("onreadystatechange", function e(t) {
+          "complete" === o.readyState && (o.detachEvent("onreadystatechange", e), n.call(a || d, t))
+        })
+      }
+    })(window, document);
+  </script>
+
+  <script src="{{ url_for('static', filename='label-studio.js') }}"></script>
+  <!-- Initialize Label Studio -->
+  <script>
+    var labelStudio = new LabelStudio('label-studio', {
+      config: `
+        <View>
+          <Paragraphs
+                  name="dialogue"
+                  value="$dialogue"
+                  layout="dialogue"
+                  savetextresult="yes"
+                  nameKey="sender"
+                  textKey="message"
+          />
+
+          <Header value="The customer's enquiry" />
+          <Choices name="general" choice="single-radio" toName="dialogue" required="true" layout="inline">
+            <Choice alias="mysim" value="My SIM" />
+            <Choice alias="dataoffers" value="Data Offers" />
+            <Choice alias="voiceoffers" value="Voice Offers" />
+            <Choice alias="complaints" value="Complaints" />
+          </Choices>
+
+          <View visibleWhen="choice-selected" whenTagName="general">
+            <Header value="Subcategory"/>
+            <Choices name="mysim" choice="single-radio" toName="dialogue" layout="inline"
+                visibleWhen="choice-selected" whenTagName="general" whenChoiceValue="mysim">
+              <Choice alias="mynumber" value="My Number" />
+              <Choice alias="PUK" value="PUK" />
+            </Choices>
+
+            <Choices name="dataoffers" choice="single-radio" toName="dialogue" layout="inline" 
+                visibleWhen="choice-selected" whenTagName="general" whenChoiceValue="dataoffers">
+              <Choice alias="3G" value="3G data offers" />
+              <Choice alias="4G" value="4G data offers" />
+            </Choices>
+
+            <Choices name="voiceoffers" choice="single-radio" toName="dialogue" layout="inline" 
+                visibleWhen="choice-selected" whenTagName="general" whenChoiceValue="voiceoffers">
+              <Choice alias="credit" value="Credit" />
+              <Choice alias="calls" value="Calls" />
+              <Choice alias="sms" value="SMS" />
+            </Choices>
+
+            <Choices name="complaints" choice="single-radio" toName="dialogue" layout="inline" 
+                visibleWhen="choice-selected" whenTagName="general" whenChoiceValue="complaints">
+              <Choice alias="data" value="Internet Issues" />
+              <Choice alias="voice" value="Voice Issues" />
+              <Choice alias="credit" value="Credit Issues" />
+            </Choices>
+          </View>
+
+        </View>
+      `,
+
+      interfaces: [
+        "panel",
+        "update",
+        "controls",
+      ],
+
+      user: {
+        pk: 1,
+            firstName: "{{ annotator.firstName }}",
+        lastName: "{{ annotator.lastName }}"
+      },
+
+      task: {
+        completions: [],
+        predictions: [],
+        id: Number.parseInt("{{ conversation.id }}", 10),
+        data: {
+              dialogue: [
+                {
+                  sender: "Customer",
+                  message: "{{ message.content }}"
+                }
+              ],
+        }
+      },
+      
+      onLabelStudioLoad: function(LS) {
+        var c = LS.completionStore.addCompletion({
+          userGenerate: true
+        });
+        LS.completionStore.selectCompletion(c.id);
+      },
+
+          onSubmitCompletion: function(ls, completion) {
+              var results = completion.results;
+              var data = new FormData();
+              data.append("conversationId", "{{ conversation.id }}");
+              data.append("messageNumber", "{{ message.number }}");
+              data.append("category", results[0].value.choices[0]);
+              if (results.length > 1) {
+                data.append("subcategory", results[1].value.choices[0]);
+              }
+              fetch('/submit', {
+                method: 'POST',
+                body: data,
+              });
+          },
+    });
+  </script>    
+
+</body>
+
+</html>
