@@ -57,17 +57,24 @@ def example():
     # add the conversation to the database
     conversation = Conversation.create(id=1, annotator=annotator, completed=False)
   # find the number of the message to be fetched
+  message = None
   message_number = 1
-  for message in reversed(conversation.messages):
-    message_number = message.number
-    if message.category is not None:
+  for m in reversed(conversation.messages):
+    message_number = m.number
+    if m.category is None:
+      message = m
+      message_number = m.number
+      break
+    if m.category is not None:
       message_number += 1
   # fetch an unlabled message and show it to the annotator
-  message = Message.create(conversation=conversation, number=message_number, content="خدمات النت")
+  if message is None:
+    message = Message.create(conversation=conversation, number=message_number, content=f"خدمات النت {message_number}")
   return render_template('example.html', annotator=annotator, conversation=conversation, message=message)
 
 @app.route('/submit', methods=['POST'])
 def submit():
+  print(request.form['messageNumber'])
   convo_id = request.form['conversationId']
   conversation = Conversation.get(id=convo_id)
 

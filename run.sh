@@ -1,5 +1,3 @@
 #!/bin/sh
 cd src/
-export FLASK_APP=app.py
-export FLASK_ENVIRONMENT=production
-exec flask run
+env FLASK_APP=app.py FLASK_ENVIRONMENT=development flask run

@@ -122,7 +122,7 @@
         LS.completionStore.selectCompletion(c.id);
       },
 
-          onSubmitCompletion: function(ls, completion) {
+          onSubmitCompletion: async function(ls, completion) {
               var results = completion.results;
               var data = new FormData();
               data.append("conversationId", "{{ conversation.id }}");
@@ -131,10 +131,11 @@
               if (results.length > 1) {
                 data.append("subcategory", results[1].value.choices[0]);
               }
-              fetch('/submit', {
+              await fetch('/submit', {
                 method: 'POST',
                 body: data,
               });
+              //window.location.reload();
           },
     });
   </script>    
