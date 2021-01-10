@@ -97,19 +97,19 @@
 
       user: {
         pk: 1,
-            firstName: "{{ annotator.firstName }}",
-        lastName: "{{ annotator.lastName }}"
+            firstName: "{{ username }}",
+            lastName: ""
       },
 
       task: {
         completions: [],
         predictions: [],
-        id: Number.parseInt("{{ conversation.id }}", 10),
+        id: Number.parseInt("{{ conv_num }}", 10),
         data: {
               dialogue: [
                 {
                   sender: "Customer",
-                  message: "{{ message.content }}"
+                  message: "{{ output_line }}"
                 }
               ],
         }
@@ -125,8 +125,9 @@
           onSubmitCompletion: async function(ls, completion) {
               var results = completion.results;
               var data = new FormData();
-              data.append("conversationId", "{{ conversation.id }}");
-              data.append("messageNumber", "{{ message.number }}");
+              data.append("conversationNumber", "{{ conv_num }}");
+              data.append("lineNum", "{{ line_num }}");
+              data.append("message", "{{ output_line }}");
               data.append("category", results[0].value.choices[0]);
               if (results.length > 1) {
                 data.append("subcategory", results[1].value.choices[0]);

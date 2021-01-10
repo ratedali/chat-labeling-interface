@@ -1,3 +1,2 @@
 #!/bin/sh
-cd src/
-env FLASK_APP=app.py FLASK_ENVIRONMENT=development flask run
+exec env FLASK_APP=src/app.py FLASK_ENVIRONMENT=development flask run -h 0.0.0.0
