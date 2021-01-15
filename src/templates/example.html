@@ -97,47 +97,60 @@
 
       user: {
         pk: 1,
-            firstName: "{{ username }}",
-            lastName: ""
+            firstName: "{{ annotator.firstName }}",
+            lastName: "{{ annotator.lastName }}"
       },
 
+      messages: {
+        DONE: "Done!",
+        NO_COMP_LEFT: "No more completions",
+        NO_NEXT_TASK: "No more data available for labeling",
+        NO_ACCESS: "You don't have access to this task",
+      },
+
+      {% if message is not none %}
       task: {
         completions: [],
         predictions: [],
-        id: Number.parseInt("{{ conv_num }}", 10),
+        id: Number.parseInt("{{ message.conversation.id }}", 10),
         data: {
               dialogue: [
                 {
                   sender: "Customer",
-                  message: "{{ output_line }}"
+                  message: `{{ message.content }}`
                 },
               ],
-        }
+        },
       },
+      {% endif %}
       
       onLabelStudioLoad: function(LS) {
+        {% if message is not none %}
         var c = LS.completionStore.addCompletion({
           userGenerate: true
         });
         LS.completionStore.selectCompletion(c.id);
+        {% endif %}
       },
 
-          onSubmitCompletion: async function(ls, completion) {
-              var results = completion.results;
-              var data = new FormData();
-              data.append("conversationNumber", "{{ conv_num }}");
-              data.append("lineNum", "{{ line_num }}");
-              data.append("message", "{{ output_line }}");
-              data.append("category", results[0].value.choices[0]);
-              if (results.length > 1) {
-                data.append("subcategory", results[1].value.choices[0]);
-              }
-              await fetch('/submit', {
-                method: 'POST',
-                body: data,
-              });
-              window.location.reload();
-          },
+      onSubmitCompletion: async function(ls, completion) {
+          {% if message is not none %}
+          var results = completion.results;
+          var data = new FormData();
+          data.append("conv_id", "{{ message.conversation.id }}");
+          data.append("message_num", "{{ message.number }}");
+          data.append("message", `{{ message.content }}`);
+          data.append("category", results[0].value.choices[0]);
+          if (results.length > 1) {
+            data.append("subcategory", results[1].value.choices[0]);
+          }
+          await fetch('/submit', {
+            method: 'POST',
+            body: data,
+          });
+          {% endif %}
+          window.location.reload();
+      },
     });
   </script>    
 
