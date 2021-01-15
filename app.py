@@ -33,19 +33,22 @@ class Message(BaseModel):
   category = CharField(null=True)
   subcategory = CharField(null=True)
 
-app = Flask(__name__)
+# Load data
+with open('data.json') as json_file:
+  data = json.load(json_file)[1:]
+num_conversations = len(data)
+
+application = Flask(__name__)
 db.connect()
 db.create_tables([Annotator, Conversation, Message])
 
 # Test Annotator
 annotator, _created = Annotator.get_or_create(username="annotator123", defaults={"firstName": "Mukhtar", "lastName": "Yahya"})
 
-# Load data
-with open('data.json') as json_file:
-  data = json.load(json_file)[1:]
-num_conversations = len(data)
+def main():
+  application.run(host='0.0.0.0')
 
-@app.route('/')
+@application.route('/')
 def example():
   message = fetch_message(annotator)
   return render_template('example.html',
@@ -53,7 +56,7 @@ def example():
                          annotator=annotator)
 
 
-@app.route('/submit', methods=['POST'])
+@application.route('/submit', methods=['POST'])
 def submit():
   conv_id = int(request.form['conv_id'])
   conversation = Conversation.get(id=conv_id)
@@ -120,3 +123,5 @@ def fetch_conversation(annotator):
                                completed=False)
   return None
 
+if __name__ == "__main__":
+  main()
