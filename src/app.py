@@ -8,6 +8,8 @@ from flask import (
     render_template,
 )
 
+data_filter = {'العربيه','العربية'}
+
 #set up the database
 db = mysql.connector.connect(host='34.91.135.43',user='root',passwd='',database='mtn_db')
 mycursor = db.cursor(buffered=True)
@@ -22,17 +24,13 @@ def fetch_line(line_num, conv):
   # print(line_num)
    for line in conv[line_num:]:
      new_line_num += 1
-     if 'MTN Sudan' not in line[1]:
+     if 'MTN Sudan' not in line[1] and line[3] not in data_filter:
       # print(any(data_filter) == line[3])
 #       if line[3] in data_filter:
 #           print('i am here')
        print(line)
        return line[3],new_line_num
    return 'empty', 0
-
-class BaseModel(Model):
-  class Meta:
-    database = db
 
 username = "test_user"
 
@@ -63,14 +61,14 @@ def example():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-  conv_num = request.form['conversationNumber']
+  conv_num = int(request.form['conversationNumber'])
   output_line = request.form['message']
-  line_num = request.form['lineNum']
+  line_num = int(request.form['lineNum'])
   category = request.form['category']
   if 'subcategory' in request.form:
     subcategory = request.form['subcategory']
 
-  mycursor.execute("INSERT INTO labeled_data (conv_num,agent,text, label) VALUES (%s,%s,%s,%s)",(conv_num,username,output_line,category))
+  mycursor.execute("INSERT INTO data (conv_num,agent,text, label) VALUES (%s,%s,%s,%s)",(conv_num,username,output_line,category))
   mycursor.execute("UPDATE request_manager SET line_num = %s WHERE conv_num = %s",(line_num,conv_num,))
   db.commit()
 
