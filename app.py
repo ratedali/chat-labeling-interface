@@ -1,6 +1,9 @@
+#!/bin/env python3
 import json
-from flask import *
+import flask
 from peewee import *
+from flask_peewee.db import Database
+from flask_peewee.auth import Auth
 
 bot_messages = {
   'العربيه',
@@ -9,71 +12,57 @@ bot_messages = {
   'Unsubscribe',
 }
 
-#set up the database
-db = SqliteDatabase('labeled_data.db')
+# Set up flask application
+app = flask.Flask(__name__)
+app.config['SECRET_KEY'] = 'super-secret'
+app.config['DATABASE'] = {
+  'name': 'labeled_data.db',
+  'engine': 'peewee.SqliteDatabase',
+}
 
-class BaseModel(Model):
-  class Meta:
-    database = db
+db = Database(app)
+auth = Auth(app, db, db_table='annotators')
 
-class Annotator(BaseModel):
-  username = CharField(unique=True)
-  firstName = CharField()
-  lastName = CharField()
 
-class Conversation(BaseModel):
+class Conversation(db.Model):
   id = IntegerField(primary_key=True)
-  annotator = ForeignKeyField(Annotator, backref='conversations', on_delete='SET NULL')
+  annotator = ForeignKeyField(auth.User, backref='conversations', on_delete='SET NULL')
   completed = BooleanField(default=False)
 
-class Message(BaseModel):
+class Message(db.Model):
   conversation = ForeignKeyField(Conversation, backref='messages')
   number = IntegerField()
   content = TextField()
   category = CharField(null=True)
   subcategory = CharField(null=True)
 
-# Load data
-with open('data.json') as json_file:
-  data = json.load(json_file)[1:]
-num_conversations = len(data)
 
-application = Flask(__name__)
-db.connect()
-db.create_tables([Annotator, Conversation, Message])
-
-# Test Annotator
-annotator, _created = Annotator.get_or_create(username="annotator123", defaults={"firstName": "Mukhtar", "lastName": "Yahya"})
-
-def main():
-  application.run(host='0.0.0.0')
-
-@application.route('/')
+@app.route('/')
+@auth.login_required
 def example():
+  annotator = auth.get_logged_in_user()
   message = fetch_message(annotator)
-  return render_template('example.html',
-                         message=message,
-                         annotator=annotator)
+  return flask.render_template('example.html',
+                               message=message,
+                               annotator=annotator)
 
-
-@application.route('/submit', methods=['POST'])
+@app.route('/submit', methods=['POST'])
 def submit():
-  conv_id = int(request.form['conv_id'])
+  conv_id = int(flask.request.form['conv_id'])
   conversation = Conversation.get(id=conv_id)
 
-  message_num = int(request.form['message_num'])
-  content = request.form['message']
+  message_num = int(flask.request.form['message_num'])
+  content = flask.request.form['message']
   message = Message(conversation=conversation,
                            number=message_num,
                            content=content)
 
-  message.category = request.form['category']
-  if 'subcategory' in request.form:
-    message.subcategory = request.form['subcategory']
+  message.category = flask.request.form['category']
+  if 'subcategory' in flask.request.form:
+    message.subcategory = flask.request.form['subcategory']
   message.save()
 
-  return Response(status=200)
-
+  return flask.Response(status=200)
 
 def fetch_message(annotator):
   """Fetch the next message the annotator needs to label"""
@@ -123,5 +112,17 @@ def fetch_conversation(annotator):
                                completed=False)
   return None
 
+@app.route('/login')
+def login():
+  pass
+
+# Load data
+with open('data.json') as json_file:
+  data = json.load(json_file)[1:]
+num_conversations = len(data)
+
+
 if __name__ == "__main__":
-  main()
+  for model in (auth.User, Conversation, Message):
+    model.create_table(fail_silently=True)
+  app.run(host='0.0.0.0', port=5000)
