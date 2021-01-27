@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
@@ -7,147 +7,127 @@
     rel='stylesheet' type='text/css' />
   <link href='//fonts.googleapis.com/css?family=Dosis:500&text=LabelStudio' rel='stylesheet'
     type='text/css' />
-  <link href="{{ url_for('static', filename='label-studio.css') }}" rel="stylesheet">
-  <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet">
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+    integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
+    crossorigin="anonymous">
+  <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}" type="text/css"
+    media="all">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="theme-color" content="#000000">
   <title>Label Studio</title>
-</head> 
+</head>
+
 <body>
   <noscript>
     You need to enable JavaScript to run this app.
   </noscript>
 
-  <div id="ls-container">
-    <div id="label-studio"></div>
+  <div class="container h-100 d-flex align-items-center justify-content-center">
+    <div class="card w-100">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-3-md offset-md-9">
+            <div class="chat-bubble chat-bubble-right target-message">
+              {{ message.content }}
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <h5>
+              Select the appropriate category
+              <small class="text-muted">for the message in blue</small>
+            </h5>
+          </div>
+        </div>
+
+        <form action="submit" method="post" accept-charset="utf-8">
+          <div id="category" class="form-group">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="category" id="category-complaint"
+                value="complaint">
+              <label class="form-check-label" for="category-complaint">Complaint</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="category" id="category-info"
+                value="info" />
+              <label class="form-check-label" for="category-info">Info</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="category" id="category-corporate"
+                value="corporate" />
+              <label class="form-check-label" for="category-corporate">Corporate</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="radio" name="category" id="category-hd"
+                value="hd" />
+              <label class="form-check-label" for="category-hd">HD</label>
+            </div>
+          </div>
+
+          <div id="complaint" class="form-group d-none">
+            <label for="complaint-select">Complaint Subcategory:</label>
+            <select id="complaint-select" name="subcategory" class="form-control">
+              <option value="additionalservice">Additional Service Complaint</option>
+              <option value="call">Call Complaint</option>
+              <option value="network">Coverage &amp; Network Quality Complaint</option>
+              <option value="data">Data Complaint</option>
+              <option value="digitalserice">Digital Service Complaint</option>
+              <option value="momo">MoMo Service</option>
+              <option value="credit">Recharge, Balance &amp; Transfer Complaint</option>
+              <option value="sim">SIM Card Problems &amp; Profiles</option>
+              <option value="sms">SMS Complaint</option>
+              <option value="voice">Voice Offers Comlaint</option>
+            </select>
+          </div>
+
+          <div id="info" class="form-group d-none">
+            <label for="info-select">Info Subcategory:</label>
+            <select id="info-select" name="subcategory" class="form-control">
+              <option value="additionalservice">Additional Services Info</option>
+              <option value="basicservice">Basic Services Info</option>
+              <option value="customerservice">Customer Service Info</option>
+              <option value="network">Network Info</option>
+              <option value="credit">Recharge &amp; Credit Transfer Info</option>
+              <option value="sim">SIM Card, GSM Number &amp; Profile Info</option>
+              <option value="sms">SMS Info</option>
+              <option value="suggestion">Suggestion</option>
+              <option value="voice">Voice Info</option>
+            </select>
+          </div>
+
+          <div id="corporate" class="form-group d-none">
+            <label for="corporate-select">Corporate Subcategory:</label>
+            <select id="corporate-select" name="subcategory" class="form-control">
+              <option value="complaint">Customer Complaint</option>
+              <option value="email">Email</option>
+              <option value="suggestions">Suggestion</option>
+            </select>
+          </div>
+
+          <div id="hd" class="form-group d-none">
+            <label for="hd-select">HD Subcategory:</label>
+            <select id="hd-select" name="subcategory" class="form-control">
+              <option value="info">Info</option>
+              <option value="complaint">Complaint</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
   </div>
 
-  <script>
-    (function (d, o) {
-      d.domReady = function (n, a) {
-        o.addEventListener && o.addEventListener("DOMContentLoaded", function e(t) {
-          o.removeEventListener("DOMContentLoaded", e), n.call(a || d, t)
-        }) || o.attachEvent && o.attachEvent("onreadystatechange", function e(t) {
-          "complete" === o.readyState && (o.detachEvent("onreadystatechange", e), n.call(a || d, t))
-        })
-      }
-    })(window, document);
-  </script>
-
-  <script src="{{ url_for('static', filename='label-studio.js') }}"></script>
-  <!-- Initialize Label Studio -->
-  <script>
-    var labelStudio = new LabelStudio('label-studio', {
-      config: `
-        <View>
-          <Paragraphs
-                  name="dialogue"
-                  value="$dialogue"
-                  layout="dialogue"
-                  savetextresult="yes"
-                  nameKey="sender"
-                  textKey="message"
-          />
-
-          <Header value="The customer's enquiry" />
-          <Choices name="general" choice="single-radio" toName="dialogue" required="true" layout="inline">
-            <Choice alias="mysim" value="My SIM" />
-            <Choice alias="dataoffers" value="Data Offers" />
-            <Choice alias="voiceoffers" value="Voice Offers" />
-            <Choice alias="complaints" value="Complaints" />
-          </Choices>
-
-          <View visibleWhen="choice-selected" whenTagName="general">
-            <Header value="Subcategory"/>
-            <Choices name="mysim" choice="single-radio" toName="dialogue" layout="inline"
-                visibleWhen="choice-selected" whenTagName="general" whenChoiceValue="mysim">
-              <Choice alias="mynumber" value="My Number" />
-              <Choice alias="PUK" value="PUK" />
-            </Choices>
-
-            <Choices name="dataoffers" choice="single-radio" toName="dialogue" layout="inline" 
-                visibleWhen="choice-selected" whenTagName="general" whenChoiceValue="dataoffers">
-              <Choice alias="3G" value="3G data offers" />
-              <Choice alias="4G" value="4G data offers" />
-            </Choices>
-
-            <Choices name="voiceoffers" choice="single-radio" toName="dialogue" layout="inline" 
-                visibleWhen="choice-selected" whenTagName="general" whenChoiceValue="voiceoffers">
-              <Choice alias="credit" value="Credit" />
-              <Choice alias="calls" value="Calls" />
-              <Choice alias="sms" value="SMS" />
-            </Choices>
-
-            <Choices name="complaints" choice="single-radio" toName="dialogue" layout="inline" 
-                visibleWhen="choice-selected" whenTagName="general" whenChoiceValue="complaints">
-              <Choice alias="data" value="Internet Issues" />
-              <Choice alias="voice" value="Voice Issues" />
-              <Choice alias="credit" value="Credit Issues" />
-            </Choices>
-          </View>
-
-        </View>
-      `,
-
-      interfaces: [
-        "panel",
-        "update",
-        "controls",
-      ],
-
-      messages: {
-        DONE: "Done!",
-        NO_COMP_LEFT: "No more completions",
-        NO_NEXT_TASK: "No more data available for labeling",
-        NO_ACCESS: "You don't have access to this task",
-      },
-
-      {% if message is not none %}
-      task: {
-        completions: [],
-        predictions: [],
-        id: Number.parseInt("{{ message.conversation.id }}", 10),
-        data: {
-              dialogue: [
-                {
-                  sender: "Customer",
-                  message: `{{ message.content }}`
-                },
-              ],
-        },
-      },
-      {% endif %}
-      
-      onLabelStudioLoad: function(LS) {
-        {% if message is not none %}
-        var c = LS.completionStore.addCompletion({
-          userGenerate: true
-        });
-        LS.completionStore.selectCompletion(c.id);
-        {% endif %}
-      },
-
-      onSubmitCompletion: async function(ls, completion) {
-          {% if message is not none %}
-          var results = completion.results;
-          var data = new FormData();
-          data.append("conv_id", "{{ message.conversation.id }}");
-          data.append("message_num", "{{ message.number }}");
-          data.append("message", `{{ message.content }}`);
-          data.append("category", results[0].value.choices[0]);
-          if (results.length > 1) {
-            data.append("subcategory", results[1].value.choices[0]);
-          }
-          await fetch('/submit', {
-            method: 'POST',
-            body: data,
-          });
-          {% endif %}
-          window.location.reload();
-      },
-    });
-  </script>    
-
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+    crossorigin="anonymous"></script>
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 
 </html>
