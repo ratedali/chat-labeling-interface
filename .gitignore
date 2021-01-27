@@ -211,3 +211,4 @@ dmypy.json
 
 data.json
 labeled_data.db
+node_modules

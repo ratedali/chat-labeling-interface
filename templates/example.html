@@ -24,6 +24,7 @@
   </noscript>
 
   <div class="container h-100 d-flex align-items-center justify-content-center">
+    {% if message is not none %}
     <div class="card w-100">
       <div class="card-body">
         <div class="row">
@@ -44,6 +45,9 @@
         </div>
 
         <form action="submit" method="post" accept-charset="utf-8">
+          <input type="hidden" name="conv_id" value="{{ message.conversation.id }}">
+          <input type="hidden" name="message_num" value="{{ message.number }}">
+          <input type="hidden" name="message" value="{{ message.content }}">
           <div id="category" class="form-group">
             <div class="form-check form-check-inline">
               <input class="form-check-input" type="radio" name="category" id="category-complaint"
@@ -61,15 +65,15 @@
               <label class="form-check-label" for="category-corporate">Corporate</label>
             </div>
             <div class="form-check form-check-inline">
-              <input class="form-check-input" type="radio" name="category" id="category-hd"
-                value="hd" />
-              <label class="form-check-label" for="category-hd">HD</label>
+              <input class="form-check-input" type="radio" name="category" id="category-sc"
+                value="sc" />
+              <label class="form-check-label" for="category-sc">Service Centers</label>
             </div>
           </div>
 
           <div id="complaint" class="form-group d-none">
             <label for="complaint-select">Complaint Subcategory:</label>
-            <select id="complaint-select" name="subcategory" class="form-control">
+            <select id="complaint-select" name="complaint" class="form-control">
               <option value="additionalservice">Additional Service Complaint</option>
               <option value="call">Call Complaint</option>
               <option value="network">Coverage &amp; Network Quality Complaint</option>
@@ -85,7 +89,7 @@
 
           <div id="info" class="form-group d-none">
             <label for="info-select">Info Subcategory:</label>
-            <select id="info-select" name="subcategory" class="form-control">
+            <select id="info-select" name="info" class="form-control">
               <option value="additionalservice">Additional Services Info</option>
               <option value="basicservice">Basic Services Info</option>
               <option value="customerservice">Customer Service Info</option>
@@ -100,25 +104,29 @@
 
           <div id="corporate" class="form-group d-none">
             <label for="corporate-select">Corporate Subcategory:</label>
-            <select id="corporate-select" name="subcategory" class="form-control">
+            <select id="corporate-select" name="corporate" class="form-control">
               <option value="complaint">Customer Complaint</option>
               <option value="email">Email</option>
               <option value="suggestions">Suggestion</option>
             </select>
           </div>
 
-          <div id="hd" class="form-group d-none">
-            <label for="hd-select">HD Subcategory:</label>
-            <select id="hd-select" name="subcategory" class="form-control">
-              <option value="info">Info</option>
-              <option value="complaint">Complaint</option>
+          <div id="sc" class="form-group d-none">
+            <label for="sc-select">HD Subcategory:</label>
+            <select id="sc-select" name="sc" class="form-control">
+              <option value="collection">Collection &amp; Voice</option>
+              <option value="modification">Modification</option>
+              <option value="sales">Sales</option>
             </select>
           </div>
 
-          <button type="submit" class="btn btn-primary">Submit</button>
+          <button type="submit" class="btn btn-primary">SUBMIT</button>
         </form>
       </div>
     </div>
+    {% else %}
+    <h1 class="display1">DONE!</h1>
+    {% endif %}
   </div>
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"

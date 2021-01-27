@@ -37,7 +37,7 @@ class Message(db.Model):
   subcategory = CharField(null=True)
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 @auth.login_required
 def example():
   annotator = auth.get_logged_in_user()
@@ -48,6 +48,7 @@ def example():
 
 @app.route('/submit', methods=['POST'])
 def submit():
+  print(f'form = {flask.request.form}')
   conv_id = int(flask.request.form['conv_id'])
   conversation = Conversation.get(id=conv_id)
 
@@ -58,11 +59,9 @@ def submit():
                            content=content)
 
   message.category = flask.request.form['category']
-  if 'subcategory' in flask.request.form:
-    message.subcategory = flask.request.form['subcategory']
+  message.subcategory = flask.request.form[message.category]
   message.save()
-
-  return flask.Response(status=200)
+  return flask.redirect(flask.url_for('example'))
 
 def fetch_message(annotator):
   """Fetch the next message the annotator needs to label"""
@@ -111,10 +110,6 @@ def fetch_conversation(annotator):
                                annotator=annotator,
                                completed=False)
   return None
-
-@app.route('/login')
-def login():
-  pass
 
 # Load data
 with open('data.json') as json_file:
